@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Xcode 本地设置与构建缓存
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+.swiftpm/
+*.xcresult/
+
+# 本项目的构建、测试与安装包输出
+/build/
+/dist/
+*.noindex/
+*.app/
+*.dSYM/
+*.dSYM.zip
+/Shiying.zip
+/Shiying.dmg
+
+# Python 脚本缓存
+__pycache__/
+*.py[cod]
+
+# 本地环境与签名凭据
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.key
+*.pem
+*.p8
+*.mobileprovision
+*.provisionprofile
+
+# 本地历史数据库及 SQLite 日志
+history.sqlite
+history.sqlite-*

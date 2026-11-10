@@ -1,0 +1,16 @@
+{
+  "fill-specializations": [
+    {"value": {"linear-gradient": ["srgb:0.14118,0.23137,0.27059,1.00000", "srgb:0.07059,0.13725,0.17647,1.00000"]}},
+    {"appearance": "dark", "value": {"linear-gradient": ["srgb:0.10588,0.18431,0.22353,1.00000", "srgb:0.04314,0.08235,0.10980,1.00000"]}}
+  ],
+  "groups": [{
+    "layers": [
+      {"name": "BackFragment", "image-name": "BackFragment.svg", "glass": true, "hidden": false},
+      {"name": "FrontFragment", "image-name": "FrontFragment.svg", "glass": true, "hidden": false}
+    ],
+    "shadow": {"kind": "neutral", "opacity": 0.15},
+    "specular": true,
+    "translucency": {"enabled": true, "value": 0.08}
+  }],
+  "supported-platforms": {"squares": ["macOS"]}
+}
