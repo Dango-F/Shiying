@@ -54,9 +54,16 @@ import CryptoKit
         for (encoding, type, name) in fixtures {
             let data = try XCTUnwrap(bitmap.representation(using: encoding, properties: [:]))
             board.clearContents(); board.setData(data, forType: .init(type))
+            if encoding == .tiff { board.setString(" \t \u{00A0}", forType: .string) }
             let captured = try XCTUnwrap(Clipboard.read(board))
             XCTAssertEqual(captured.kind, .image); XCTAssertEqual(captured.summary.format?.name, name)
             XCTAssertEqual(captured.summary.pixelWidth, 16); XCTAssertEqual(captured.summary.pixelHeight, 12)
+            let cell = ClipCell(frame: NSRect(x: 0, y: 0, width: 344, height: 60))
+            let record = ClipRecord(id: type, created: .now, copied: .now, kind: captured.kind, bytes: data.count, saved: false, copies: 1, partial: false)
+            cell.configure(ClipRow(record: record, summary: captured.summary), number: 1, query: "", section: nil)
+            let labels = descendants(cell).compactMap { $0 as? NSTextField }
+            XCTAssertEqual(labels.first { $0.identifier?.rawValue == "clip.title" }?.stringValue, L("image"))
+            XCTAssertEqual(labels.first { $0.identifier?.rawValue == "clip.detail" }?.stringValue, "\(name) · 16 × 12")
             _ = try Clipboard.write(captured.payload, plain: false, to: board)
             XCTAssertEqual(board.data(forType: .init(type)), data)
         }

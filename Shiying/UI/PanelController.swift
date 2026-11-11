@@ -541,10 +541,11 @@ extension PanelController: NSMenuDelegate {
         sectionLabel.stringValue = section ?? ""; sectionLabel.isHidden = section == nil
         bodyTop.constant = 8 + (section == nil ? 0 : 18 * Preferences.scale)
         let s = row.summary, r = row.record
-        let titleString = s.title.isEmpty ? L(r.kind.rawValue) : s.title
+        let hasVisibleTitle = !s.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let titleString = hasVisibleTitle ? s.title : L(r.kind.rawValue)
         let attributes: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 13 * Preferences.scale, weight: .medium), .foregroundColor: NSColor.labelColor]
         let attributed = NSMutableAttributedString(string: titleString, attributes: attributes)
-        if !query.isEmpty, !s.title.isEmpty {
+        if !query.isEmpty, hasVisibleTitle {
             let range = (titleString as NSString).range(of: query, options: [.caseInsensitive, .diacriticInsensitive])
             if range.location != NSNotFound { attributed.addAttribute(.backgroundColor, value: NSColor.findHighlightColor, range: range) }
         }

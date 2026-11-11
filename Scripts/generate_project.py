@@ -32,7 +32,7 @@ obj('testGroup', f'isa = PBXGroup; name = Tests; children = ({refs(tests)}); sou
 obj('products', f'isa = PBXGroup; name = Products; children = ({refs(["appProduct", "testProduct"])}); sourceTree = "<group>";')
 obj('root', f'isa = PBXGroup; children = ({refs(["sourceGroup", "testGroup", "products"])}); sourceTree = "<group>";')
 
-common = '''SDKROOT = macosx; MACOSX_DEPLOYMENT_TARGET = 26.0; ARCHS = arm64; SWIFT_VERSION = 6.0; SWIFT_STRICT_CONCURRENCY = complete; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; ENABLE_HARDENED_RUNTIME = YES; DEAD_CODE_STRIPPING = YES; SWIFT_EMIT_LOC_STRINGS = NO; LOCALIZATION_PREFERS_STRING_CATALOGS = YES; CURRENT_PROJECT_VERSION = 19; MARKETING_VERSION = 0.1.17; CODE_SIGN_STYLE = Manual; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = NO; ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;'''
+common = '''SDKROOT = macosx; MACOSX_DEPLOYMENT_TARGET = 26.0; ARCHS = arm64; SWIFT_VERSION = 6.0; SWIFT_STRICT_CONCURRENCY = complete; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; ENABLE_HARDENED_RUNTIME = YES; DEAD_CODE_STRIPPING = YES; SWIFT_EMIT_LOC_STRINGS = NO; LOCALIZATION_PREFERS_STRING_CATALOGS = YES; CURRENT_PROJECT_VERSION = 20; MARKETING_VERSION = 0.1.18; CODE_SIGN_STYLE = Manual; CODE_SIGN_IDENTITY = "-"; ENABLE_APP_SANDBOX = NO; ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;'''
 for target in ['project', 'app', 'test']:
     for config in ['Debug', 'Release']:
         settings = common
