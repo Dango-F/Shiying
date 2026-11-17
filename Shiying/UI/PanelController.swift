@@ -7,7 +7,7 @@ import AppKit
     var onVisibilityChange: ((Bool) -> Void)?
     private let surface = GlassSurface()
     private let search = NSSearchField()
-    private let table = NSTableView()
+    private let table = ClipTableView()
     private let scroll = NSScrollView()
     private let savedFilter = NSSegmentedControl()
     private let typeFilter = NSPopUpButton()
@@ -108,10 +108,11 @@ import AppKit
         let column = NSTableColumn(identifier: .init("clip")); column.width = 344; column.resizingMask = .autoresizingMask; table.addTableColumn(column)
         table.columnAutoresizingStyle = .uniformColumnAutoresizingStyle; table.autoresizingMask = [.width]
         table.headerView = nil; table.backgroundColor = .clear; table.style = .plain; table.selectionHighlightStyle = .regular
+        table.focusRingType = .none
         table.rowHeight = 52 * Preferences.scale; table.intercellSpacing = NSSize(width: 0, height: 1)
         table.dataSource = self; table.delegate = self; table.target = self; table.doubleAction = #selector(copySelected)
         table.setAccessibilityLabel(L("history"))
-        let menu = NSMenu(); menu.autoenablesItems = false; menu.delegate = self; table.menu = menu
+        let menu = NSMenu(); menu.autoenablesItems = false; menu.delegate = self; table.clipMenu = menu
         scroll.documentView = table; scroll.hasVerticalScroller = true; scroll.drawsBackground = false
         scroll.contentView.drawsBackground = false; scroll.autohidesScrollers = true
         let list = ReadingView(); UI.pin(scroll, in: list, inset: 4)
@@ -495,7 +496,6 @@ import AppKit
 
 extension PanelController: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
-        if table.clickedRow >= 0 { table.selectRowIndexes(IndexSet(integer: table.clickedRow), byExtendingSelection: false) }
         menu.removeAllItems()
         var actions: [(String, Selector)] = [("copy", #selector(copySelected)), ("copyPlain", #selector(copyPlain)), (selected?.record.saved == true ? "unsave" : "save", #selector(favoriteSelected)), ("details", #selector(toggleDetails))]
         if selected?.record.kind == .file { actions.append(("reveal", #selector(reveal))) }
@@ -506,6 +506,40 @@ extension PanelController: NSMenuDelegate {
         }
     }
     @objc private func copyPlain() { copySelection(plain: true) }
+}
+
+@MainActor final class ClipTableView: NSTableView {
+    var clipMenu: NSMenu?
+
+    override func rightMouseDown(with event: NSEvent) {
+        showClipMenu(at: event.locationInWindow)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.control) {
+            showClipMenu(at: event.locationInWindow)
+        } else {
+            super.mouseDown(with: event)
+        }
+    }
+
+    override func showContextMenuForSelection(_ sender: Any?) {
+        guard selectedRow >= 0 else { return }
+        let rowRect = rect(ofRow: selectedRow).intersection(visibleRect)
+        guard !rowRect.isEmpty else { return }
+        showClipMenu(at: convert(NSPoint(x: rowRect.midX, y: rowRect.midY), to: nil))
+    }
+
+    private func showClipMenu(at windowPoint: NSPoint) {
+        guard let clipMenu, let window else { return }
+        let row = self.row(at: convert(windowPoint, from: nil))
+        guard row >= 0 else { return }
+        selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+        clipMenu.delegate?.menuNeedsUpdate?(clipMenu)
+        // NSTableView outlines the target row while its context menu tracks.
+        // Present the same NSMenu separately so only our selection fill is drawn.
+        clipMenu.popUp(positioning: nil, at: window.convertPoint(toScreen: windowPoint), in: nil)
+    }
 }
 
 @MainActor final class ClipCell: NSTableCellView {
