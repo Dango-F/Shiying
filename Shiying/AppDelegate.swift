@@ -6,6 +6,7 @@ import Darwin
     private var statusItem: NSStatusItem!
     private var panelController: PanelController!
     private var settingsController: SettingsController?
+    private let updateChecker = UpdateChecker()
     private var hotkey: HotKey!
     private var terminationSignal: DispatchSourceSignal?
     private var lastPreferences = ""
@@ -45,12 +46,14 @@ import Darwin
                 if let other = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.shiying.mac").first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) { other.activate(options: []) }
                 let alert = NSAlert(); alert.messageText = L("error.instance"); alert.addButton(withTitle: L("close")); alert.runModal(); NSApp.terminate(nil); return
             }
+            updateChecker.scheduleAutomaticCheck()
             if ProcessInfo.processInfo.arguments.contains("--settings") { showSettings() }
             else if !model.consent { showOnboarding() }
         }
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { if !flag { showPanel() }; return true }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        updateChecker.stop()
         hotkey?.stop(); model.stop(); panelController.purgePreviews()
         let store = model.store
         Task.detached {
@@ -78,7 +81,7 @@ import Darwin
     @objc private func openPanel() { showPanel() }
     @objc private func showSettings() {
         if settingsController == nil {
-            settingsController = SettingsController(model: model)
+            settingsController = SettingsController(model: model, updateChecker: updateChecker)
             settingsController?.onShortcutChange = { [weak self] in self?.registerHotkey() ?? false }
         }
         settingsController?.present()

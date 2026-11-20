@@ -225,12 +225,13 @@ import AppKit
         panel.cancelDragging()
         panel.orderOut(nil); onVisibilityChange?(false); queryTask?.cancel(); detailTask?.cancel(); requestID += 1
         isPinned = false
+        selectedID = nil
         thumbnailWorker?.cancel(); thumbnailWorker = nil; thumbnailQueue.removeAll(); imageCache.removeAllObjects()
         newItemsButton.isHidden = true; rows.removeAll(); table.reloadData(); detailText.string = ""; detailImage.image = nil
         removeMonitors(); updateState()
     }
     func purgePreviews() {
-        selectedID = nil; hide(); let windows = previewWindows; previewWindows.removeAll(); windows.forEach { $0.close() }
+        hide(); let windows = previewWindows; previewWindows.removeAll(); windows.forEach { $0.close() }
     }
     private func installOutsideMonitor() {
         removeMonitors()
@@ -278,10 +279,13 @@ import AppKit
                 guard !Task.isCancelled, requestID == request, panel.isVisible else { return }
                 let previousIDs = Set(rows.map { $0.record.id })
                 if !rows.isEmpty, selectedID != results.first?.record.id, results.contains(where: { !previousIDs.contains($0.record.id) }) { newItemsButton.isHidden = false }
+                let retainedIndex = selectedID.flatMap { id in results.firstIndex { $0.record.id == id } }
                 rows = results; table.reloadData()
-                let index = selectedID.flatMap { id in rows.firstIndex { $0.record.id == id } } ?? (rows.isEmpty ? -1 : 0)
+                let index = retainedIndex ?? (rows.isEmpty ? -1 : 0)
                 table.selectRowIndexes(index >= 0 ? IndexSet(integer: index) : [], byExtendingSelection: false)
+                selectedID = selected?.record.id
                 emptyStack.isHidden = !rows.isEmpty; scroll.isHidden = rows.isEmpty
+                if retainedIndex == nil, index == 0 { table.scrollRowToVisible(0) }
                 updateState(); if detailOpen { loadDetail() }
             } catch { if !Task.isCancelled { model.report(error); rows.removeAll(); table.reloadData(); updateState() } }
         }

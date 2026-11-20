@@ -155,6 +155,14 @@ retryStorage|Retry Storage and Permissions|重试存储与权限
 about.story|“拾” gathers a fragment; “影” is an impression left behind. Copying keeps an impression. Pasting gives it another place to settle.|“拾”是收取片段，“影”是原物留下的映像。复制如拾影，粘贴则让影像在另一处落定，轻盈而含蓄。
 about.technology|Native Swift 6 and AppKit. System SQLite, CryptoKit, Keychain and ImageIO. Single process. No web renderer or bundled fonts.|原生 Swift 6 与 AppKit。复用系统 SQLite、CryptoKit、Keychain 和 ImageIO。单进程，无网页渲染器或内嵌字体。
 about.website|Development build. A release website and Developer ID notarization have not been configured.|开发版本，尚未配置发布官网、Developer ID 签名与公证。
+update.automatic|Automatically Check for Updates|自动检查更新
+update.check|Check Now|立即检查
+update.download|Download Update|下载更新
+update.development|Development builds support manual checks.|开发版支持手动检查更新。
+update.checking|Checking for updates…|正在检查更新…
+update.current|No updates available.|当前没有可用更新。
+update.available|Update %@ is available.|发现新版 %@。
+update.failed|Couldn’t check for updates. Please try again later.|检查更新失败，请稍后重试。
 diagnostics|Diagnostics|诊断
 diagnostics.detail|Preview basic version and status information before copying. Clipboard content, search queries and file paths are excluded.|复制前预览版本与状态信息，不包含剪贴板正文、搜索词或文件路径。
 copyDiagnostics|Preview Diagnostics…|预览诊断信息…

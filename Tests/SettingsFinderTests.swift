@@ -40,6 +40,48 @@ import CryptoKit
         for _ in 0..<100 { if condition() { return }; try await Task.sleep(for: .milliseconds(10)) }
         XCTFail("Timed out waiting for the panel operation")
     }
+    func testTogglingPanelReselectsFirstResultAfterScrolling() async throws {
+        let store = HistoryStore(directory: try directory(), testKey: SymmetricKey(size: .bits256))
+        let model = AppModel(store: store)
+        models.append(model)
+        await model.start()
+        func insert(_ title: String, at date: Date) async throws {
+            let item = ClipItem(representations: [Representation(type: "public.utf8-plain-text", data: Data(title.utf8))])
+            let summary = ClipSummary(title: title, detail: "", hasText: true)
+            _ = try await store.insert(CapturedClip(kind: .text, payload: ClipPayload(items: [item]), summary: summary, partial: false), now: date)
+        }
+        let start = Date.now.addingTimeInterval(-60)
+        for index in 0..<20 { try await insert("Fragment \(index)", at: start.addingTimeInterval(Double(index))) }
+
+        let controller = PanelController(model: model)
+        panels.append(controller)
+        let table = table(controller)
+        let search = try XCTUnwrap(descendants(controller.panel.contentView!).compactMap { $0 as? NSSearchField }.first)
+        search.stringValue = "Fragment"
+        controller.toggle()
+        try await waitUntil { table.numberOfRows == 20 && table.selectedRow == 0 }
+        table.selectRowIndexes(IndexSet(integer: 15), byExtendingSelection: false)
+        table.scrollRowToVisible(15)
+        XCTAssertFalse(table.visibleRect.intersects(table.rect(ofRow: 0)))
+
+        try await insert("Fragment while open", at: start.addingTimeInterval(30))
+        controller.refresh()
+        try await waitUntil { table.numberOfRows == 21 }
+        XCTAssertEqual(table.selectedRow, 16)
+
+        controller.toggle()
+        XCTAssertFalse(controller.panel.isVisible)
+        try await insert("Fragment after closing", at: start.addingTimeInterval(40))
+        try await insert("Excluded by search", at: start.addingTimeInterval(50))
+        controller.toggle()
+        try await waitUntil { table.numberOfRows == 22 && table.selectedRow == 0 }
+        XCTAssertTrue(table.visibleRect.contains(table.rect(ofRow: 0)))
+        XCTAssertEqual(search.stringValue, "Fragment")
+        let firstRow = try XCTUnwrap(table.view(atColumn: 0, row: 0, makeIfNecessary: false))
+        let title = descendants(firstRow).compactMap { $0 as? NSTextField }.first { $0.identifier?.rawValue == "clip.title" }
+        XCTAssertEqual(title?.stringValue, "Fragment after closing")
+    }
+
     func testSettingsKeepPanelVisibleWithSelectionPositionAndPin() {
         for pinned in [false, true] {
             let model = AppModel()

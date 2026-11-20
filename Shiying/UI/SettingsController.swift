@@ -4,6 +4,7 @@ import Carbon
 
 @MainActor final class SettingsController: NSWindowController, NSWindowDelegate {
     private let model: AppModel
+    private let updateChecker: UpdateChecker
     private let surface = GlassSurface()
     private let sidebar = NSStackView()
     private let content = FlippedView()
@@ -23,12 +24,18 @@ import Carbon
     private var clarityLabel: NSTextField?
     private var shortcut: ShortcutRecorder?
     private var loginSwitch: NSSwitch?
+    private var updateStatusLabel: NSTextField?
+    private var checkUpdateButton: NSButton?
+    private var downloadUpdateButton: NSButton?
     var onShortcutChange: (() -> Bool)?
 
-    init(model: AppModel, initialPage: Int = 0) {
-        self.model = model; page = min(5, max(0, initialPage))
+    init(model: AppModel, initialPage: Int = 0, updateChecker: UpdateChecker = UpdateChecker()) {
+        self.model = model
+        self.updateChecker = updateChecker
+        page = min(5, max(0, initialPage))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 740, height: 560), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: true)
         super.init(window: window)
+        updateChecker.onChange = { [weak self] in self?.refreshUpdateStatus() }
         window.delegate = self; window.isReleasedWhenClosed = false; window.minSize = NSSize(width: 680, height: 480)
         window.titlebarAppearsTransparent = true; window.titleVisibility = .hidden
         window.isOpaque = false; window.backgroundColor = .clear
@@ -90,6 +97,9 @@ import Carbon
         shortcut?.cancelRecording(); shortcut = nil; preview = nil; loginSwitch = nil
         content.subviews.forEach { $0.removeFromSuperview() }
         stateLabel = nil; capacityLabel = nil; usageLabel = nil; diskLabel = nil; permissionsLabel = nil; loginLabel = nil; clarityLabel = nil
+        updateStatusLabel = nil
+        checkUpdateButton = nil
+        downloadUpdateButton = nil
         for (n, button) in buttons.enumerated() {
             button.title = L(pages[n]); button.setAccessibilityLabel(L(pages[n])); button.selected = n == page
         }
@@ -269,10 +279,53 @@ import Carbon
     @objc private func retryStorage() { Task { await model.retry(); refreshStatus() } }
     private func about(_ body: NSStackView) {
         let icon = NSImageView(image: NSApp.applicationIconImage); icon.imageScaling = .scaleProportionallyUpOrDown; icon.heightAnchor.constraint(equalToConstant: 72).isActive = true
-        let version = BuildInfo.fullVersion
-        group([icon, UI.label(BuildInfo.displayName, size: 20, weight: .semibold), formRow("version", control: UI.label(version)), UI.label("arm64 · macOS 26+", size: 11, secondary: true), UI.paragraph(L("about.story")), UI.paragraph(L("about.technology")), UI.paragraph(L("about.website"))], in: body)
+        let automatic = NSSwitch()
+        automatic.target = self
+        automatic.action = #selector(automaticUpdatesChanged(_:))
+        automatic.state = updateChecker.automaticChecksEnabled ? .on : .off
+        automatic.isEnabled = updateChecker.supportsAutomaticChecks
+        automatic.setAccessibilityLabel(L("update.automatic"))
+        let check = UI.button(L("update.check"), target: self, action: #selector(checkForUpdates))
+        let download = UI.button(L("update.download"), target: self, action: #selector(openUpdateDownload))
+        let status = UI.paragraph("")
+        checkUpdateButton = check
+        downloadUpdateButton = download
+        updateStatusLabel = status
+        var updateControls = [formRow("version", control: UI.label(BuildInfo.fullVersion))]
+        updateControls.append(formRow("update.automatic", control: automatic))
+        if !updateChecker.supportsAutomaticChecks { updateControls.append(UI.paragraph(L("update.development"))) }
+        updateControls.append(contentsOf: [check, status, download])
+        group(updateControls, in: body)
+        refreshUpdateStatus()
+        group([icon, UI.label(BuildInfo.displayName, size: 20, weight: .semibold), UI.label("arm64 · macOS 26+", size: 11, secondary: true), UI.paragraph(L("about.story")), UI.paragraph(L("about.technology")), UI.paragraph(L("about.website"))], in: body)
         group([UI.label(L("diagnostics"), weight: .medium), UI.paragraph(L("diagnostics.detail")), UI.button(L("copyDiagnostics"), target: self, action: #selector(copyDiagnostics))], in: body)
     }
+    @objc private func automaticUpdatesChanged(_ sender: NSSwitch) {
+        updateChecker.setAutomaticChecksEnabled(sender.state == .on)
+    }
+    @objc private func checkForUpdates() { updateChecker.checkNow() }
+
+    @objc private func openUpdateDownload() {
+        if let url = updateChecker.downloadURL { NSWorkspace.shared.open(url) }
+    }
+
+    private func refreshUpdateStatus() {
+        guard let label = updateStatusLabel else { return }
+        checkUpdateButton?.isEnabled = !updateChecker.isChecking
+        downloadUpdateButton?.isHidden = updateChecker.downloadURL == nil
+        if updateChecker.isChecking {
+            label.stringValue = L("update.checking")
+        } else {
+            switch updateChecker.status {
+            case .idle: label.stringValue = ""
+            case .current: label.stringValue = L("update.current")
+            case .available(let tag): label.stringValue = String(format: L("update.available"), tag)
+            case .failed: label.stringValue = L("update.failed")
+            }
+        }
+        label.isHidden = label.stringValue.isEmpty
+    }
+
     @objc private func copyDiagnostics() {
         let alert = NSAlert(); alert.messageText = L("diagnostics"); alert.informativeText = "\(BuildInfo.displayName) \(BuildInfo.version)\narm64\nmacOS \(ProcessInfo.processInfo.operatingSystemVersionString)\n\(L(model.statusKey))\n\(L("capacity")): \(model.stats.bytes) B\n\(L("history")): \(model.stats.count)"
         alert.addButton(withTitle: L("cancel")); alert.addButton(withTitle: L("copy"))
