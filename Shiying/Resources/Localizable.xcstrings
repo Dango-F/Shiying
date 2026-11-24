@@ -1775,13 +1775,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Control+V opens the compact panel at the bottom right of the current screen. The menu bar icon is hidden by default. Copy a fragment, then press Command+V in the destination app. Capture observes the latest clipboard state; very rapid copies may be missed."
+            "value": "By default, Option+V opens the compact panel at the bottom right of the current screen. The menu bar icon is hidden by default. Copy a fragment, then press Command+V in the destination app. Capture observes the latest clipboard state; very rapid copies may be missed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认 Control+V 在当前屏幕右下角唤出紧凑面板，菜单栏图标默认隐藏。复制片段后，在目标应用按 Command+V 粘贴。采集观察剪贴板的最新状态，快速连续复制可能遗漏。"
+            "value": "默认 Option+V 在当前屏幕右下角唤出紧凑面板，菜单栏图标默认隐藏。复制片段后，在目标应用按 Command+V 粘贴。采集观察剪贴板的最新状态，快速连续复制可能遗漏。"
           }
         }
       }

@@ -346,7 +346,7 @@ import Carbon
     convenience init() { self.init(frame: .zero) }
     required init?(coder: NSCoder) { fatalError() }
     override var acceptsFirstResponder: Bool { true }
-    func updateTitle() { title = Preferences.defaults.string(forKey: "hotkeyTitle") ?? "⌃V" }
+    func updateTitle() { title = Preferences.defaults.string(forKey: "hotkeyTitle") ?? Preferences.defaultHotkeyTitle }
     @objc private func beginRecording() { recording = true; title = L("shortcut.record"); window?.makeFirstResponder(self) }
     func cancelRecording() { recording = false; updateTitle() }
     override func performKeyEquivalent(with event: NSEvent) -> Bool { if recording { keyDown(with: event); return true }; return super.performKeyEquivalent(with: event) }

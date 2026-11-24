@@ -22,8 +22,8 @@ import ServiceManagement
 enum BuildInfo {
     static let displayName = "拾影·Shiying"
     static var isDevelopment: Bool { Bundle.main.bundleIdentifier?.hasSuffix(".dev") == true }
-    static var version: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.21" }
-    static var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "23" }
+    static var version: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.22" }
+    static var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "24" }
     static var shortVersion: String { "v" + version + (isDevelopment ? " · Dev" : "") }
     static var fullVersion: String { version + " (" + build + ")" + (isDevelopment ? " · Dev" : "") }
 }
