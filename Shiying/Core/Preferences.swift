@@ -6,21 +6,21 @@ extension Notification.Name { static let preferencesChanged = Notification.Name(
 @MainActor enum Preferences {
     static let defaults = UserDefaults.standard
     static let glassStyles = ["adaptive", "ink"]
-    static let defaultHotkeyTitle = "⌥V"
+    static let defaultHotkeyTitle = "Fn+V"
     static func register() {
         // 固定和拖动位置现在只属于本次显示，清除旧版本遗留的持久化 UI 状态。
         defaults.removeObject(forKey: "panelPinned"); defaults.removeObject(forKey: "panelOrigin")
         // A saved title identifies a shortcut explicitly recorded by the user.
         let code = defaults.integer(forKey: "hotkeyCode")
         let modifiers = defaults.integer(forKey: "hotkeyModifiers")
-        let wasDefault = (code == kVK_ANSI_V && modifiers == controlKey)
+        let wasDefault = (code == kVK_ANSI_V && (modifiers == optionKey || modifiers == controlKey))
             || (code == kVK_Space && modifiers == (cmdKey | optionKey))
         if defaults.object(forKey: "hotkeyTitle") == nil, wasDefault {
             defaults.removeObject(forKey: "hotkeyCode"); defaults.removeObject(forKey: "hotkeyModifiers")
         }
         defaults.register(defaults: ["language": "system", "theme": "system", "glass": "adaptive", "clarity": 0.75,
             "pollInterval": 0.5, "fontScale": 1.0,
-            "hotkeyCode": kVK_ANSI_V, "hotkeyModifiers": optionKey, "showStatusItem": false, "launchAtLogin": true,
+            "hotkeyCode": kVK_ANSI_V, "hotkeyModifiers": kEventKeyModifierFnMask, "showStatusItem": false, "launchAtLogin": true,
             "excludedApps": ["com.agilebits.onepassword7", "com.1password.1password", "com.bitwarden.desktop", "org.keepassxc.keepassxc", "com.apple.Passwords"]])
     }
     static func set(_ value: Any, _ key: String) {

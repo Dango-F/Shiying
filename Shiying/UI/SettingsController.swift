@@ -354,12 +354,15 @@ import Carbon
         guard recording else { super.keyDown(with: event); return }
         if event.keyCode == 53 { cancelRecording(); return }
         let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
-        guard !flags.intersection([.command, .option, .control]).isEmpty else { NSSound.beep(); return }
+        // AppKit also sets .function on special keys. Support Fn on the physical V key.
+        let fnV = event.keyCode == kVK_ANSI_V && event.modifierFlags.contains(.function)
+        guard fnV || !flags.intersection([.command, .option, .control]).isEmpty else { NSSound.beep(); return }
         var modifiers: UInt32 = 0; var label = ""
         if flags.contains(.control) { modifiers |= UInt32(controlKey); label += "⌃" }
         if flags.contains(.option) { modifiers |= UInt32(optionKey); label += "⌥" }
         if flags.contains(.shift) { modifiers |= UInt32(shiftKey); label += "⇧" }
         if flags.contains(.command) { modifiers |= UInt32(cmdKey); label += "⌘" }
+        if fnV { modifiers |= UInt32(kEventKeyModifierFnMask); label += "Fn+" }
         label += event.keyCode == 49 ? "Space" : event.charactersIgnoringModifiers?.uppercased() ?? "\(event.keyCode)"
         recording = false; onRecorded?(UInt32(event.keyCode), modifiers, label); updateTitle()
     }

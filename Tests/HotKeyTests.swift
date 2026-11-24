@@ -3,25 +3,43 @@ import AppKit
 import Carbon
 
 @MainActor final class HotKeyTests: XCTestCase {
-    func testNewAndUpgradedPreferencesDefaultToOptionV() {
-        withStoredShortcut(modifiers: nil, title: nil) {
-            XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyCode"), kVK_ANSI_V)
-            XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyModifiers"), optionKey)
-            XCTAssertEqual(ShortcutRecorder(frame: .zero).title, "⌥V")
+    func testNewAndUpgradedPreferencesDefaultToFnV() {
+        for modifiers in [nil, optionKey, controlKey] as [Int?] {
+            withStoredShortcut(modifiers: modifiers, title: nil) {
+                XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyCode"), kVK_ANSI_V)
+                XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyModifiers"), Int(kEventKeyModifierFnMask))
+                XCTAssertEqual(ShortcutRecorder(frame: .zero).title, "Fn+V")
+            }
         }
-        withStoredShortcut(modifiers: controlKey, title: nil) {
+    }
+
+    func testExplicitlyRecordedOptionVIsPreserved() {
+        withStoredShortcut(modifiers: optionKey, title: "⌥V") {
             XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyCode"), kVK_ANSI_V)
             XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyModifiers"), optionKey)
             XCTAssertEqual(ShortcutRecorder(frame: .zero).title, "⌥V")
         }
     }
 
-    func testExplicitlyRecordedControlVIsPreserved() {
-        withStoredShortcut(modifiers: controlKey, title: "⌃V") {
-            XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyCode"), kVK_ANSI_V)
-            XCTAssertEqual(Preferences.defaults.integer(forKey: "hotkeyModifiers"), controlKey)
-            XCTAssertEqual(ShortcutRecorder(frame: .zero).title, "⌃V")
+    func testRecorderAcceptsFnVAndRejectsBareV() throws {
+        _ = NSApplication.shared
+        let recorder = ShortcutRecorder(frame: .zero)
+        var captured: (UInt32, UInt32, String)?
+        recorder.onRecorded = { captured = ($0, $1, $2) }
+        recorder.performClick(nil)
+
+        func key(_ flags: NSEvent.ModifierFlags) throws -> NSEvent {
+            try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: flags,
+                timestamp: 0, windowNumber: 0, context: nil, characters: "v",
+                charactersIgnoringModifiers: "v", isARepeat: false, keyCode: UInt16(kVK_ANSI_V)))
         }
+        recorder.keyDown(with: try key([]))
+        XCTAssertNil(captured)
+        recorder.keyDown(with: try key(.function))
+        let (code, modifiers, title) = try XCTUnwrap(captured)
+        XCTAssertEqual(code, UInt32(kVK_ANSI_V))
+        XCTAssertEqual(modifiers, UInt32(kEventKeyModifierFnMask))
+        XCTAssertEqual(title, "Fn+V")
     }
 
     private func withStoredShortcut(modifiers: Int?, title: String?, check: () -> Void) {

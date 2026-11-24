@@ -106,7 +106,7 @@ shortcut.record|Press shortcut…|按下快捷键…
 language|Language|语言
 system|System|跟随系统
 poll|Capture Interval|采集间隔
-general.note|By default, Option+V opens the compact panel at the bottom right of the current screen. The menu bar icon is hidden by default. Copy a fragment, then press Command+V in the destination app. Capture observes the latest clipboard state; very rapid copies may be missed.|默认 Option+V 在当前屏幕右下角唤出紧凑面板，菜单栏图标默认隐藏。复制片段后，在目标应用按 Command+V 粘贴。采集观察剪贴板的最新状态，快速连续复制可能遗漏。
+general.note|By default, Fn+V (Globe+V) opens the compact panel at the bottom right of the current screen. The menu bar icon is hidden by default. Copy a fragment, then press Command+V in the destination app. Capture observes the latest clipboard state; very rapid copies may be missed.|默认 Fn+V（地球仪键+V）在当前屏幕右下角唤出紧凑面板，菜单栏图标默认隐藏。复制片段后，在目标应用按 Command+V 粘贴。采集观察剪贴板的最新状态，快速连续复制可能遗漏。
 retention|Keep up to 30 items, including favorites. When all 30 are saved, keep 5 additional recent items. History survives restarts and doesn’t expire by age.|常规保留 30 条，包含收藏；全部收藏后，额外保留最近 5 条。重启后仍可使用，不按天数过期。
 capacity|Encrypted Payload|加密载荷
 databaseSize|Database File|数据库文件
